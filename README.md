@@ -8,4 +8,4 @@ Note: Faas is sometimes referred to as 'serverless computing' or simply 'serverl
 
 ## The code is available by cloning this repository.
 
-## Full platform-specific instructions (for Red Hat Enterprise Linux, MacOS and Windows) are available at this Github page.
+## Full platform-specific instructions (for Red Hat Enterprise Linux, MacOS and Windows) are available at [this Github page](https://redhat-developer-demos.github.io/faas-tutorial-nodejs/).
