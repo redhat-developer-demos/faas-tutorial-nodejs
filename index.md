@@ -1,4 +1,4 @@
-<img src="https://github.com/redhat-developer/design-manual/blob/master/RHD%20Visual%20Elements/RHD%20Merging%20Branches/RHDP_social_images-Email_655x96_actual-size.png">
+<img src="https://github.com/redhat-developer/design-manual/blob/master/RHD%20Visual%20Elements/RHD%20Merging%20Branches/RHDP_social_images-Email_655x96_actual-size.png"/>
   
 This tutorial guides you to a working knowledge of how to build functions using Node.js on the open source Function as a Service (FaaS) platform <a href="https://openwhisk.apache.org/">OpenWhisk</a>.
 
