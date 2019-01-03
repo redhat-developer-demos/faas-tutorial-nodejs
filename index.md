@@ -1,4 +1,3 @@
-  
 This tutorial guides you to a working knowledge of how to build functions using Node.js on the open source Function as a Service (FaaS) platform <a href="https://openwhisk.apache.org/">OpenWhisk</a>.
 
 This tutorial will use Minishift to run an instance of OpenShift on your local PC in a Virtual Machine (VM). OpenWhisk is then installed and run inside of OpenShift.
@@ -7,6 +6,9 @@ This tutorial will use Minishift to run an instance of OpenShift on your local P
 
 ## Prerequisites
 You will need the following to execute this tutorial on your local PC.
+
+### Windows/PowerShell Users
+You haven't been forgotten. Throughout this tutorial, when a command differs between Linux and Windows, the PowerShell commands are noted.
 
 ### <a href="https://github.com/minishift/minishift">Minishift</a>
 Minishift allows you to run OpenShift and the entire OpenWhisk environment inside a VM on your PC.
@@ -28,6 +30,15 @@ git allows you to work with Github repositories (repos) on your PC
 
 ### <a href="https://www.npmjs.com/get-npm">npm</a>
 npm allows you to manage Node.js packages on your PC
+
+### <a href="https://www.7-zip.org/">7-Zip</a>
+*Only required for Windows/PowerShell*  
+Supports recursive zip file creation.
+(Can be installed using `choco install 7zip`)
+
+### <a href="https://curl.haxx.se/windows/">curl for Windows</a>
+*Only required for Windows/PowerShell*  
+Allows you to run the curl command
 
 ## Starting Minishift
 
@@ -57,12 +68,20 @@ The following commands will ensure that your OpenShift and docker commands will 
 `eval $(minishift oc-env)`  
 `eval $(minishift docker-env)`
 
+*For PowerShell users, the commands are:*  
+`& minishift oc-env | Invoke-Expression`  
+`& minishift docker-env | Invoke-Expression`  
+
 ## Setting Up OpenWhisk
 
 The project <a href="https://github.com/projectodd/openwhisk-openshift">OpenWhisk on OpenShift</a> provides the OpenShift templates required to deploy Apache OpenWhisk.
 
 Log in as the admin  
 `oc login $(minishift ip):8443 -u admin -p admin`
+
+*For PowerShell users, use the following two commands:*  
+`$url = & minishift ip`  
+`oc login $url:8443 -u admin -p admin`  
 
 It is always better to group related classes of applications. Create a new OpenShift project called "faas" to deploy all OpenWhisk applications.  
 `oc new-project faas`
@@ -100,6 +119,15 @@ The OpenWhisk CLI needs to be configured to know where the OpenWhisk instance is
     wsk property set --auth $AUTH_SECRET --apihost $(oc get route/openwhisk --template="{{.spec.host}}")
 {% endraw %} 
 
+*PowerShell users should use the following commands:*  
+`$AUTH_SECRET=(oc get secret whisk.auth -o yaml).Split(":",1)[3].Split()[3]`  
+`$AUTH_SECRET=[System.Text.Encoding]::ASCII.GetString([System.Convert]::FromBase64String($AUTH_SECRET))`  
+{% raw %}
+    $APIHOST=oc get route/openwhisk --template="{{.spec.host}}"
+{% endraw %}  
+`wsk property set --auth $AUTH_SECRET --apihost $APIHOST`
+
+
 Successful setup of wsk will show output like this:  
 <img src="./images/figure2.png" />
 
@@ -126,6 +154,10 @@ For more details refer the <a href="https://openwhisk.apache.org/documentation.h
 Move into the ./solutions/hello-openwhisk directory and view the file hello-openwhisk.js:  
 `cd solutions/hello-openwhisk`  
 `cat hello-openwhisk.js`  
+
+*PowerShell:*  
+`cd solutions/hello-openwhisk`  
+`type .\hello-openwhisk.js` 
 
 You will see the following Node.js code:
 ```javascript
@@ -245,6 +277,9 @@ Use the following command to move into the directory containing the 'splitter' c
 Optional: Examine the code for the function:  
 `cat splitter.js`
 
+*PowerShell:*  
+`type splitter.js`  
+
 Notice that the input JSON is expected to contain the property '.text', which will contain the string of comma-separated words.
 
 Create the OpenWhisk action 'splitter' using the code in file 'splitter.js'.  
@@ -306,6 +341,9 @@ Move into the 'uppercase' directory:
 Optional: View the source code  
 `cat uppercase.js`
 
+*PowerShell:*  
+`type uppercase.js`  
+
 ### Create the action 'uppercase'
 
 ** This is an exercise left to the reader **
@@ -325,6 +363,9 @@ Move into the 'sorter' directory:
 
 Optional: View the source code:  
 `cat sorter.js`
+
+*PowerShell:*  
+`type sorter.js`  
 
 ### Create the action 'sorter'
 
@@ -402,6 +443,10 @@ You will see the following results:
 Use the '--url' option to get the URL for the web action:  
 <code>WEB_URL=\`wsk -i action get hello-web --url | awk 'FNR==2{print $1".json"}'\` </code>  
 
+*PowerShell:*  
+`$WEB_URL=wsk -i action get hello-web --url`  
+`$WEB_URL="$WEB_URL.json"`  
+
 View the URL:  
 `echo $WEB_URL`
 
@@ -442,6 +487,9 @@ Move into the hellodb directory:
 Optional: View the source code:  
 `cat index.js`
 
+*PowerShell:*  
+`type index.js`
+
 This function relies on a MySQL database named 'mydb' on host 'mysql'. The login credentials will be:  
 
 user: myuser  
@@ -473,17 +521,31 @@ Note that your pod name will be different. We can isolate the name of the pod, w
 
 <code>oc get pods --selector app=mysql --output name | awk -F/ '{print $NF}'</code> 
 
+*PowerShell:*  
+`$mpod=oc get pods --selector app=mysql --output name`  
+`$mpod=$mpod.Split("/")[1]`  
+
 ### Create the database table
 The following command will run a MySQL command _inside_ the pod; it will create the database 'mydb':  
 `oc exec $(oc get pods --selector app=mysql --output name | awk -F/ '{print $NF}') -- bash -c "mysql --user=root mydb -e 'use mydb; create table personal_greeting (first_name varchar(20) not null primary key, custom_greeting varchar(20));'"`
+
+*PowerShell:*  
+`oc exec $mpod -- bash -c "mysql --user=root mydb -e 'use mydb; create table personal_greeting (first_name varchar(20) not null primary key, custom_greeting varchar(20));'"`
 
 ### Populate the new database table
 This command will populate the database table:  
 `oc exec $(oc get pods --selector app=mysql --output name | awk -F/ '{print $NF}') -- bash -c "mysql --user=root mydb -e 'use mydb; insert into personal_greeting (first_name,custom_greeting) values(\"Don\", \"Howdy\")';"`
 
+*PowerShell:*  
+`oc exec $mpod -- bash -c "mysql --user=root mydb -e 'use mydb; insert into personal_greeting (first_name,custom_greeting) values(\""Don\"", \""Howdy\"")';"`
+
+
 ### Prove the database contents
 Use this command to prove that everything is up and running as inspected:  
 `oc exec $(oc get pods --selector app=mysql --output name | awk -F/ '{print $NF}') -- bash -c "mysql --user=root mydb -e 'use mydb; select * from personal_greeting';"`  
+
+*PowerShell:*  
+`oc exec $mpod -- bash -c "mysql --user=root mydb -e 'use mydb; select * from personal_greeting';"`  
 
 #### Expected results
 ![figure20](./images/figure20.png)
@@ -516,6 +578,13 @@ OpenWhisk allows *.zip files to be used a functions. This allows us to use Node.
 `npm install --production`  
 `zip -rq hellodb.zip * -x *.sh *.me`  
 `wsk -i action create hellodb --kind nodejs:8 hellodb.zip`
+
+*PowerShell:*  
+7-Zip must be installed  
+
+`npm install --production`    
+`7z a hellodb.zip -r *.*`  
+`wsk -i action create hellodb --kind nodejs:8 hellodb.zip`  
 
 Note that we must tell the 'action create' command what *kind* of function we are building; in this case, a nodejs:8 function.
 
@@ -595,6 +664,11 @@ For example:
 You can fire a the trigger via HTTP; it will return an activation ID. The following `curl` command is an example:
 
 `curl -k -X POST https://789c46b1-71f6-4ed5-8c54-816aa4f8c502:XsDY2SjQCtXC7hgkBpMht28faPPaDK3FxN5KhUfCHCfUCrP66AFEIBAtk8t52BYk@openwhisk-faas.192.168.99.100.nip.io/api/v1/namespaces/_/triggers/myTrigger`
+
+*PowerShell:*  
+It *may* be necessary to remove the PowerShell curl alias in order for the curl command to work:    
+`Remove-Item alias:curl`   
+`curl -k -X POST https://789c46b1-71f6-4ed5-8c54-816aa4f8c502:XsDY2SjQCtXC7hgkBpMht28faPPaDK3FxN5KhUfCHCfUCrP66AFEIBAtk8t52BYk@openwhisk-faas.192.168.99.100.nip.io/api/v1/namespaces/_/triggers/myTrigger` 
 
 ![figure26](./images/figure26.png)
 
